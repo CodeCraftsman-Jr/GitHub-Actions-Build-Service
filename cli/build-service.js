@@ -54,6 +54,7 @@ program
   .description('Build your Expo project remotely')
   .argument('[project-path]', 'Path to your Expo project', '.')
   .option('-p, --platform <platform>', 'Platform to build (android, ios, all)', 'android')
+  .option('-v, --variant <variant>', 'Build variant (development, preview, release)', 'release')
   .option('--wait', 'Wait for build to complete', false)
   .action(async (projectPath, options) => {
     try {
@@ -122,7 +123,8 @@ program
           client_payload: {
             source_url: sourceUrl,
             build_id: buildId,
-            platform: options.platform
+            platform: options.platform,
+            variant: options.variant || 'release'
           }
         },
         {

@@ -42,15 +42,21 @@ jobs:
             SOURCE_URL="${{ github.event.inputs.source_url }}"
             BUILD_ID="${{ github.event.inputs.build_id }}"
             CALLBACK_URL="${{ github.event.inputs.callback_url }}"
+            VARIANT="${{ github.event.inputs.variant }}"
           else
             SOURCE_URL="${{ github.event.client_payload.source_url }}"
             BUILD_ID="${{ github.event.client_payload.build_id }}"
             CALLBACK_URL="${{ github.event.client_payload.callback_url }}"
+            VARIANT="${{ github.event.client_payload.variant }}"
           fi
+          
+          # Default to release if no variant specified
+          VARIANT="${VARIANT:-release}"
           
           echo "SOURCE_URL=$SOURCE_URL" >> $GITHUB_OUTPUT
           echo "BUILD_ID=$BUILD_ID" >> $GITHUB_OUTPUT
           echo "CALLBACK_URL=$CALLBACK_URL" >> $GITHUB_OUTPUT
+          echo "VARIANT=$VARIANT" >> $GITHUB_OUTPUT
           echo "BUILD_NUMBER=$(date +%s)" >> $GITHUB_OUTPUT
 
       - name: Download source code
@@ -103,24 +109,32 @@ jobs:
 
       - name: Build Android APK
         working-directory: project/android
-        run: ./gradlew assembleRelease --no-daemon
+        run: |
+          VARIANT="${{ steps.build_info.outputs.VARIANT }}"
+          VARIANT_CAPITALIZED="$(echo ${VARIANT^})"
+          echo "Building variant: $VARIANT"
+          ./gradlew assemble${VARIANT_CAPITALIZED} --no-daemon
 
       - name: Build Android AAB
         working-directory: project/android
-        run: ./gradlew bundleRelease --no-daemon
+        run: |
+          VARIANT="${{ steps.build_info.outputs.VARIANT }}"
+          VARIANT_CAPITALIZED="$(echo ${VARIANT^})"
+          ./gradlew bundle${VARIANT_CAPITALIZED} --no-daemon
 
       - name: Rename artifacts
         run: |
           BUILD_ID="${{ steps.build_info.outputs.BUILD_ID }}"
           BUILD_NUM="${{ steps.build_info.outputs.BUILD_NUMBER }}"
+          VARIANT="${{ steps.build_info.outputs.VARIANT }}"
           
           # Find and rename APK
-          APK_PATH=$(find project/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
-          cp "$APK_PATH" "build-${BUILD_ID}-${BUILD_NUM}.apk"
+          APK_PATH=$(find project/android/app/build/outputs/apk/$VARIANT -name "*.apk" | head -n 1)
+          cp "$APK_PATH" "build-${BUILD_ID}-${BUILD_NUM}-${VARIANT}.apk"
           
           # Find and rename AAB
-          AAB_PATH=$(find project/android/app/build/outputs/bundle/release -name "*.aab" | head -n 1)
-          cp "$AAB_PATH" "build-${BUILD_ID}-${BUILD_NUM}.aab"
+          AAB_PATH=$(find project/android/app/build/outputs/bundle/${VARIANT} -name "*.aab" | head -n 1)
+          cp "$AAB_PATH" "build-${BUILD_ID}-${BUILD_NUM}-${VARIANT}.aab"
 
       - name: Upload to Appwrite Storage
         id: upload
