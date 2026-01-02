@@ -2,7 +2,7 @@
 
 const { program } = require('commander');
 const { Client, Storage, ID } = require('node-appwrite');
-const { InputFile } = require('node-appwrite/file');
+const { InputFile } = require('node-appwrite');
 const fs = require('fs');
 const path = require('path');
 const tar = require('tar');
