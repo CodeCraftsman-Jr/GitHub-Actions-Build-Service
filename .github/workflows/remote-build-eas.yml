@@ -136,7 +136,7 @@ jobs:
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
         run: |
           UPLOAD_RESPONSE=$(curl -X POST \
-            "${{ secrets.APPWRITE_ENDPOINT }}/storage/buckets/${{ secrets.APPWRITE_BUCKET }}/files" \
+            "${{ secrets.APPWRITE_ENDPOINT }}/storage/buckets/${{ secrets.APPWRITE_BUCKET_ID }}/files" \
             -H "X-Appwrite-Project: ${{ secrets.APPWRITE_PROJECT_ID }}" \
             -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
             -H "Content-Type: multipart/form-data" \
