@@ -76,18 +76,25 @@ program
       fs.mkdirSync(tempDir, { recursive: true });
       const archivePath = path.join(tempDir, 'project.tar.gz');
       
-      // Create tar.gz of project (excluding node_modules, .git, etc.)
+      // Get all directories/files to include (exclude node_modules, .git, etc.)
+      const entries = fs.readdirSync(projectPath, { withFileTypes: true })
+        .filter(entry => {
+          const exclude = ['node_modules', '.git', '.expo', 'android', 'ios', '.gradle', 'test.tar.gz', 'test2.tar.gz'];
+          return !exclude.includes(entry.name);
+        })
+        .map(entry => entry.name);
+      
+      console.log(`📁 Including: ${entries.join(', ')}`);
+      
+      // Create tar.gz of project
       await tar.create(
         {
           gzip: true,
           file: archivePath,
           cwd: projectPath,
-          filter: (path) => {
-            const exclude = ['node_modules', '.git', '.expo', 'android', 'ios', '.gradle'];
-            return !exclude.some(dir => path.includes(dir));
-          }
+          portable: true
         },
-        ['.']
+        entries
       );
       
       const stats = fs.statSync(archivePath);

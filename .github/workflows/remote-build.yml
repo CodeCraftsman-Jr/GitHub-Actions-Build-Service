@@ -73,8 +73,10 @@ jobs:
           file source.tar.gz
           
           mkdir -p project
-          tar -xzf source.tar.gz -C project --strip-components=1
+          tar -xzf source.tar.gz -C project
           ls -la project
+          echo "Contents of project directory:"
+          ls -la project/
 
       - name: Install dependencies
         working-directory: project
